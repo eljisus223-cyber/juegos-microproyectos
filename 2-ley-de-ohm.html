@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reto de la Ley de Ohm</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+</style></head><body><main><h1>Reto de la Ley de Ohm</h1><p class="tag">Sesión 3 · Unidad 1 · Voltaje, corriente y resistencia</p><div class="card"><p style="margin:0"><b>Ley de Ohm:</b> V = I × R. Resuelve 10 retos. Cada acierto vale 1 punto; si usas la pista, vale medio punto. Puedes usar la coma o el punto para los decimales.</p></div>
+<div id="play"><div class="bar"><span>Reto <span id="n"></span></span><span>Puntos: <span id="sc">0</span></span></div>
+<div class="card"><p id="q" style="margin-top:0"></p><label for="ans" style="font-weight:600">Tu respuesta</label><br><input id="ans" type="text" inputmode="decimal" autocomplete="off">
+<p id="hh" class="msg" style="font-weight:400" role="status"></p>
+<div class="row"><button id="check" type="button">Comprobar</button><button id="hint" class="sec" type="button">Pista</button><button id="skip" class="sec" type="button">Ver respuesta</button></div></div>
+<p id="msg" class="msg" role="status" aria-live="polite"></p><div class="row"><button id="next" type="button" hidden>Siguiente</button></div></div>
+<div id="final" class="card final" hidden><div id="res"></div><p>Si tu profesor lo pide, toma una captura de esta pantalla como evidencia.</p></div>
+<div class="row"><button id="again" class="sec" type="button">Jugar de nuevo</button></div></main><script>
+var T=[[3,100,.03],[3,150,.02],[3,300,.01],[6,100,.06],[6,200,.03],[6,300,.02],[6,600,.01],[9,100,.09],[9,300,.03],[9,450,.02],[9,900,.01],[12,200,.06],[12,400,.03],[12,600,.02],[12,1200,.01]];
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function f(n){return String(n).replace('.',',')}
+var Q=[],i=0,score=0,hint=false,hints=0,done=false;
+function build(){
+  var tr=shuffle(T.slice()).slice(0,10),kinds=shuffle(['I','R','V','I','R','V','I','R','V','I']);
+  Q=tr.map(function(t,k){var V=t[0],R=t[1],I=t[2],q=kinds[k];
+    if(q==='I')return{q:'Una pila de <b>'+V+' V</b> alimenta una resistencia de <b>'+R+' Ω</b>. ¿Cuánta corriente circula? Responde en amperios (A).',a:I,u:'A',h:'I = V ÷ R = '+V+' ÷ '+R};
+    if(q==='R')return{q:'Por un circuito de <b>'+V+' V</b> circulan <b>'+f(I)+' A</b>. ¿Cuál es la resistencia? Responde en ohmios (Ω).',a:R,u:'Ω',h:'R = V ÷ I = '+V+' ÷ '+f(I)};
+    return{q:'Una resistencia de <b>'+R+' Ω</b> deja pasar <b>'+f(I)+' A</b>. ¿Qué voltaje tiene la pila? Responde en voltios (V).',a:V,u:'V',h:'V = I × R = '+f(I)+' × '+R};
+  });i=0;score=0;hints=0;done=false;
+  document.getElementById('final').hidden=true;document.getElementById('play').hidden=false;show();
+}
+function show(){
+  hint=false;document.getElementById('n').textContent=(i+1)+' de '+Q.length;document.getElementById('sc').textContent=score;
+  document.getElementById('q').innerHTML=Q[i].q;document.getElementById('ans').value='';document.getElementById('ans').disabled=false;
+  document.getElementById('check').disabled=false;document.getElementById('hint').disabled=false;document.getElementById('next').hidden=true;
+  document.getElementById('hh').textContent='';say('','');document.getElementById('ans').focus();
+}
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function check(){
+  var v=parseFloat(document.getElementById('ans').value.replace(',','.'));
+  if(isNaN(v)){say('Escribe un número.','bad');return}
+  var q=Q[i];
+  if(Math.abs(v-q.a)<1e-9*Math.max(1,Math.abs(q.a))+1e-9){score+=hint?0.5:1;say('¡Correcto! '+f(q.a)+' '+q.u+(hint?' (con pista: medio punto)':'')+'.','ok');lockQ()}
+  else{say('Todavía no. Revisa la fórmula y las unidades. Puedes intentarlo otra vez o pedir una pista.','bad')}
+}
+function lockQ(){
+  document.getElementById('ans').disabled=true;document.getElementById('check').disabled=true;document.getElementById('hint').disabled=true;
+  document.getElementById('sc').textContent=score;var n=document.getElementById('next');n.hidden=false;n.textContent=i===Q.length-1?'Ver resultado':'Siguiente';n.focus();
+}
+document.getElementById('check').onclick=check;
+document.getElementById('ans').onkeydown=function(e){if(e.key==='Enter')check()};
+document.getElementById('hint').onclick=function(){hint=true;hints++;document.getElementById('hh').textContent='Pista: '+Q[i].h};
+document.getElementById('skip').onclick=function(){say('La respuesta era '+f(Q[i].a)+' '+Q[i].u+'. '+Q[i].h+'.','bad');lockQ()};
+document.getElementById('next').onclick=function(){
+  if(i<Q.length-1){i++;show()}
+  else{document.getElementById('play').hidden=true;var fi=document.getElementById('final');fi.hidden=false;
+    var s=score,m=s>=9?'Dominas la Ley de Ohm.':s>=6?'Vas bien. Repasa las fórmulas que fallaste.':'Repasa la guía de la sesión 3 y vuelve a intentarlo.';
+    document.getElementById('res').innerHTML='<big>'+String(s).replace('.',',')+' de '+Q.length+'</big>'+m}
+};
+document.getElementById('again').onclick=build;build();
+</script></body></html>

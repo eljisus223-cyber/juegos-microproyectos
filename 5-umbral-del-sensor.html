@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ajusta el valor límite del sensor</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+
+.sc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.sce{border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;text-align:center}
+.sce .e{font-size:2rem;line-height:1.1}
+.sce.on{background:#fff6cf;border-color:#e0a800}
+.sce .st{font-weight:700}
+.sce .v{font-size:.85rem;color:var(--mut)}
+input[type=range]{width:100%;min-height:44px}
+pre{background:#1f2a44;color:#e8f0fb;border-radius:10px;padding:12px;overflow-x:auto;font-size:.88rem;margin:8px 0 0}
+</style></head><body><main><h1>Ajusta el valor límite del sensor</h1><p class="tag">Sesiones 9 y 10 · Unidad 3 · Sensor de luz con Arduino</p><div class="card"><p style="margin:0">El sensor de luz (LDR) entrega un número de 0 (oscuridad) a 1023 (mucha luz). La lámpara debe <b>encender al atardecer y de noche</b>, y <b>apagarse</b> con el salón iluminado y con sol. Mueve el valor límite para lograrlo.</p></div>
+<div class="card"><label for="sl" style="font-weight:600">Valor límite: <span id="uv"></span></label><input id="sl" type="range" min="0" max="1023" step="1" value="800">
+<pre id="code" aria-label="Código de Arduino"></pre></div>
+<div class="sc" id="sce"></div>
+<p id="msg" class="msg" role="status" aria-live="polite"></p>
+<div class="row"><button id="chk" type="button">Comprobar</button><button id="hint" class="sec" type="button">Pista</button></div></main><script>
+var S=[['Sol directo',900,'☀️',false],['Salón iluminado',600,'🏫',false],['Atardecer',300,'🌇',true],['Noche',50,'🌙',true]];
+var sl=document.getElementById('sl');
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function draw(){
+  var u=+sl.value;document.getElementById('uv').textContent=u;
+  document.getElementById('code').textContent='int luz = analogRead(A0);\nif (luz < '+u+') {\n  digitalWrite(LED, HIGH);  // enciende\n} else {\n  digitalWrite(LED, LOW);   // apaga\n}';
+  var h='';S.forEach(function(s){var on=s[1]<u;var good=on===s[3];
+    h+='<div class="sce'+(on?' on':'')+'"><div class="e" aria-hidden="true">'+s[2]+'</div><div><b>'+s[0]+'</b></div><div class="v">Lectura: '+s[1]+'</div><div class="st">Lámpara '+(on?'ENCENDIDA':'APAGADA')+'</div><div class="'+(good?'ok':'bad')+'">'+(good?'✔ Como se esperaba':'✘ Debería estar '+(s[3]?'encendida':'apagada'))+'</div></div>'});
+  document.getElementById('sce').innerHTML=h;
+}
+sl.oninput=function(){draw();say('','')};
+document.getElementById('chk').onclick=function(){
+  var u=+sl.value,bad=S.filter(function(s){return (s[1]<u)!==s[3]});
+  if(!bad.length)say('¡Funciona! Con el valor límite '+u+' la lámpara enciende al atardecer y de noche, y se apaga con luz.','ok');
+  else say('Todavía falla en: '+bad.map(function(s){return s[0].toLowerCase()}).join(', ')+'. Mueve el valor límite y vuelve a comprobar.','bad')
+};
+document.getElementById('hint').onclick=function(){say('Pista: la lámpara debe encender con la lectura del atardecer (300), pero no con la del salón (600). El valor límite debe quedar entre las dos.','')};
+draw();
+</script></body></html>

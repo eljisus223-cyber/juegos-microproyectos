@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clasifica las fuentes de energía</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+
+#pool{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:8px 14px}
+.chip.sel{border-color:var(--acc);background:#e8f0fb;font-weight:700}
+.buckets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.bk{min-height:120px;text-align:left;background:#fff;color:var(--ink);border:2px dashed var(--acc);border-radius:12px;padding:10px;display:block}
+.bk h2{font-size:1rem;margin:0 0 6px}
+.bk span{display:inline-block;background:var(--okbg);border-radius:999px;padding:2px 10px;margin:2px;font-size:.85rem}
+@media(max-width:420px){.buckets{grid-template-columns:1fr}}
+</style></head><body><main><h1>Clasifica las fuentes de energía</h1><p class="tag">Sesión 5 · Unidad 2 · Renovable o no renovable</p><div class="card"><p style="margin:0">Clasifica cada fuente de energía: <b>renovable</b> (se repone de forma natural) o <b>no renovable</b> (se agota).</p></div>
+<div id="play"><div class="bar"><span>Clasificadas: <span id="cnt"></span></span><span>Errores: <span id="err">0</span></span></div>
+<div class="card"><div id="pool" role="group" aria-label="Fuentes de energía por clasificar"></div></div>
+<div class="buckets"><button id="bk1" class="bk" type="button"><h2>Renovable</h2><div id="b1"></div></button><button id="bk0" class="bk" type="button"><h2>No renovable</h2><div id="b0"></div></button></div>
+<p id="msg" class="msg" role="status" aria-live="polite"></p></div>
+<div id="final" class="card final" hidden><div id="res"></div><p>Si tu profesor lo pide, toma una captura de esta pantalla como evidencia.</p></div>
+<div class="row"><button id="again" class="sec" type="button">Jugar de nuevo</button></div></main><script>
+var E=[['Solar',1,'La luz del Sol se transforma en electricidad con paneles solares.'],['Eólica',1,'El viento mueve las aspas y estas giran un generador.'],['Hidráulica',1,'El agua en movimiento hace girar turbinas.'],['Geotérmica',1,'Aprovecha el calor del interior de la Tierra.'],['Biomasa',1,'Viene de restos orgánicos; se considera renovable si se reponen.'],['Mareomotriz',1,'Aprovecha el sube y baja de las mareas.'],
+['Petróleo',0,'Tardó millones de años en formarse y se agota.'],['Carbón',0,'Es un combustible fósil: se agota y emite mucho CO₂.'],['Gas natural',0,'Combustible fósil: no se repone a la escala de nuestra vida.'],['Uranio',0,'Mineral limitado que se usa en centrales nucleares.'],['Gasolina',0,'Se obtiene del petróleo, por eso no es renovable.'],['Diésel',0,'Se obtiene del petróleo, por eso no es renovable.']];
+var sel=null,placed={},errors=0,count=0;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+var order;
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function start(){order=shuffle(E.map(function(e,i){return i}));sel=null;placed={};errors=0;count=0;
+  document.getElementById('final').hidden=true;document.getElementById('play').hidden=false;document.getElementById('b1').innerHTML='';document.getElementById('b0').innerHTML='';
+  say('Elige una fuente y luego toca la caja donde va.','');draw()}
+function draw(){
+  var p=document.getElementById('pool');p.innerHTML='';
+  order.forEach(function(i){if(placed[i])return;var b=document.createElement('button');b.type='button';b.className='chip'+(sel===i?' sel':'');b.textContent=E[i][0];b.setAttribute('aria-pressed',sel===i);b.onclick=function(){sel=i;draw()};p.appendChild(b)});
+  document.getElementById('cnt').textContent=count+' de '+E.length;document.getElementById('err').textContent=errors;
+}
+function drop(k){
+  if(sel===null){say('Primero elige una fuente de energía.','bad');return}
+  var e=E[sel];
+  if(e[1]===k){placed[sel]=1;count++;var s=document.createElement('span');s.textContent=e[0];document.getElementById('b'+k).appendChild(s);say('¡Bien! '+e[0]+': '+e[2],'ok');sel=null;draw();
+    if(count===E.length)finish()}
+  else{errors++;say(e[0]+' no va ahí. '+e[2],'bad');draw()}
+}
+function finish(){document.getElementById('play').hidden=true;var f=document.getElementById('final');f.hidden=false;
+  document.getElementById('res').innerHTML='<big>'+errors+' error'+(errors===1?'':'es')+'</big>'+(errors<=2?'Clasificas muy bien las fuentes de energía.':errors<=6?'Bien. Repasa por qué algunas fuentes se agotan.':'Repasa la lectura de la sesión 5 y vuelve a jugar.')+'<p style="margin-bottom:0">Pregunta para pensar: ¿qué fuente renovable podrías usar en tu casa o en tu colegio?</p>'}
+document.getElementById('b1').parentNode.onclick=null;
+document.getElementById('bk1').onclick=function(){drop(1)};document.getElementById('bk0').onclick=function(){drop(0)};
+document.getElementById('again').onclick=start;start();
+</script></body></html>

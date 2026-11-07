@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>¿Y si se funde una bombilla?</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+#cv{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}#cv *{stroke:#1f2a44;stroke-width:2.4;fill:none;stroke-linecap:round}#cv text{stroke:none;fill:#1f2a44;font:600 13px sans-serif}.opt{display:block;width:100%;text-align:left;margin-top:8px}</style></head><body><main><h1>¿Y si se funde una bombilla?</h1><p class="tag">Sesiones 3 y 4 · Unidad 1 · Circuitos en serie y en paralelo</p><div class="card"><p style="margin:0">Predice qué pasa cuando se funde una bombilla. Primero eliges, después ves el resultado en el circuito.</p></div>
+<div id="play"><div class="bar"><span>Reto <span id="n"></span></span><span>Aciertos: <span id="sc">0</span></span></div>
+<div class="card"><div id="cir"></div><p id="q" style="margin-bottom:0"></p><div id="opts"></div></div>
+<p id="msg" class="msg" role="status" aria-live="polite"></p><div class="row"><button id="next" type="button" hidden>Siguiente</button></div></div>
+<div id="final" class="card final" hidden><div id="res"></div><p>Si tu profesor lo pide, toma una captura de esta pantalla como evidencia.</p></div>
+<div class="row"><button id="again" class="sec" type="button">Jugar de nuevo</button></div></main><script>
+var R=[{m:'paralelo',b:1},{m:'serie',b:2},{m:'serie',b:0},{m:'paralelo',b:2}],i=0,score=0,answered=false;
+var X=[110,190,270];
+function bulb(x,y,st,n){
+  var fill=st==='on'?'#ffd84d':st==='burnt'?'#6b6f7a':'#e9edf3';
+  var s='<circle cx="'+x+'" cy="'+y+'" r="16" style="fill:'+fill+'"/>';
+  var col=st==='burnt'?'#ffffff':'#1f2a44';
+  s+='<line x1="'+(x-8)+'" y1="'+(y-8)+'" x2="'+(x+8)+'" y2="'+(y+8)+'" style="stroke:'+col+'"/><line x1="'+(x+8)+'" y1="'+(y-8)+'" x2="'+(x-8)+'" y2="'+(y+8)+'" style="stroke:'+col+'"/>';
+  if(st==='on')s+='<g style="stroke:#e0a800"><line x1="'+x+'" y1="'+(y-24)+'" x2="'+x+'" y2="'+(y-20)+'"/><line x1="'+(x-18)+'" y1="'+(y-18)+'" x2="'+(x-15)+'" y2="'+(y-15)+'"/><line x1="'+(x+18)+'" y1="'+(y-18)+'" x2="'+(x+15)+'" y2="'+(y-15)+'"/></g>';
+  return s+'<text x="'+x+'" y="'+(y+34)+'" text-anchor="middle" style="stroke:#fff;stroke-width:5px;paint-order:stroke">Bombilla '+(n+1)+'</text>';
+}
+function circuit(mode,burnt){
+  var anyBurnt=burnt!==null,s='<svg id="cv" viewBox="0 0 360 190" role="img" aria-label="Circuito en '+mode+' con tres bombillas">';
+  // pila izquierda
+  s+='<line x1="40" y1="20" x2="40" y2="82"/><line x1="26" y1="82" x2="54" y2="82"/><line x1="33" y1="92" x2="47" y2="92" style="stroke-width:5"/><line x1="40" y1="92" x2="40" y2="160"/><text x="62" y="90">Pila</text>';
+  if(mode==='serie'){
+    s+='<line x1="40" y1="20" x2="320" y2="20"/><line x1="320" y1="20" x2="320" y2="160"/><line x1="40" y1="160" x2="320" y2="160"/>';
+    for(var k=0;k<3;k++){var st=!anyBurnt?'on':(k===burnt?'burnt':'off');s+=bulb(X[k],20,st,k)}
+    s=s.replace(/y="54"/g,'y="54"');
+  }else{
+    s+='<line x1="40" y1="20" x2="320" y2="20"/><line x1="40" y1="160" x2="320" y2="160"/>';
+    for(var k=0;k<3;k++){s+='<line x1="'+X[k]+'" y1="20" x2="'+X[k]+'" y2="69"/><line x1="'+X[k]+'" y1="101" x2="'+X[k]+'" y2="160"/>';
+      var st2=!anyBurnt?'on':(k===burnt?'burnt':'on');s+=bulb(X[k],85,st2,k)}
+  }
+  return s+'</svg>';
+}
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function show(){
+  answered=false;var r=R[i];document.getElementById('n').textContent=(i+1)+' de '+R.length;document.getElementById('sc').textContent=score;
+  document.getElementById('cir').innerHTML=circuit(r.m,null);
+  document.getElementById('q').innerHTML='Las tres bombillas están conectadas en <b>'+r.m+'</b>. Si se funde la <b>bombilla '+(r.b+1)+'</b>, ¿qué pasará con las otras dos?';
+  var o=document.getElementById('opts');o.innerHTML='';
+  [['on','Seguirán encendidas con el mismo brillo'],['off','Se apagarán'],['more','Brillarán más']].forEach(function(p){
+    var b=document.createElement('button');b.type='button';b.className='sec opt';b.textContent=p[1];b.onclick=function(){pick(p[0])};o.appendChild(b)});
+  say('Elige tu predicción antes de ver qué pasa.','');document.getElementById('next').hidden=true;
+}
+function pick(a){
+  if(answered)return;answered=true;var r=R[i];
+  document.getElementById('cir').innerHTML=circuit(r.m,r.b);
+  var truth=r.m==='serie'?'off':'on',bs=document.querySelectorAll('.opt');bs.forEach(function(b){b.disabled=true});
+  var why=r.m==='serie'?'En serie hay un solo camino: si una bombilla se funde, se corta la corriente y se apagan todas.':'En paralelo cada bombilla tiene su propio camino y recibe el voltaje de la pila: las otras siguen igual.';
+  if(a===truth){score++;say('¡Correcto! '+why,'ok')}
+  else if(a==='more'){say('No exactamente. '+why+' El brillo no aumenta.','bad')}
+  else{say('Esta vez no. '+why,'bad')}
+  document.getElementById('sc').textContent=score;var n=document.getElementById('next');n.hidden=false;n.textContent=i===R.length-1?'Ver resultado':'Siguiente';n.focus();
+}
+document.getElementById('next').onclick=function(){
+  if(i<R.length-1){i++;show()}
+  else{document.getElementById('play').hidden=true;var f=document.getElementById('final');f.hidden=false;
+    document.getElementById('res').innerHTML='<big>'+score+' de '+R.length+'</big>'+(score===4?'Distingues muy bien serie y paralelo.':score>=2?'Vas bien. Repasa por qué en paralelo cada bombilla tiene su propio camino.':'Repasa la guía de la sesión 3 y vuelve a jugar.')+'<p style="margin-bottom:0">Pregunta para pensar: ¿cómo están conectadas las luces de una casa, en serie o en paralelo? ¿Por qué?</p>'}
+};
+document.getElementById('again').onclick=function(){i=0;score=0;document.getElementById('final').hidden=true;document.getElementById('play').hidden=false;show()};
+show();
+</script></body></html>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Memoria de símbolos eléctricos</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.c{min-height:84px;padding:4px;background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:10px;font-size:.78rem;line-height:1.2;display:flex;align-items:center;justify-content:center;text-align:center}
+.c.back{background:var(--acc);color:#fff;font-size:1.6rem;border-color:var(--acc)}
+.c.done{background:var(--okbg);border-color:var(--ok);cursor:default}
+.c svg{width:100%;max-width:78px;height:auto}
+.c svg *{fill:none;stroke:#1f2a44;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.c svg .f{fill:#1f2a44}
+</style></head><body><main><h1>Memoria de símbolos eléctricos</h1><p class="tag">Sesión 2 · Unidad 1 · El circuito eléctrico y su diagrama</p><div class="card"><p style="margin:0">Encuentra la pareja de cada símbolo con su nombre. Voltea dos cartas por turno. Intenta usar la menor cantidad de intentos.</p></div>
+<div class="bar"><span>Intentos: <span id="mv">0</span></span><span>Parejas: <span id="pr">0</span></span></div>
+<div id="grid"></div><p id="msg" class="msg" role="status" aria-live="polite"></p>
+<div id="final" class="card final" hidden><div id="res"></div><p>Si tu profesor lo pide, toma una captura de esta pantalla como evidencia.</p></div>
+<div class="row"><button id="again" class="sec" type="button">Jugar de nuevo</button></div></main><script>
+var W='<line x1="5" y1="25" x2="%a" y2="25"/>';
+function w(a,b){return '<line x1="'+a+'" y1="25" x2="'+b+'" y2="25"/>'}
+var SYM=[
+ ['Pila','<svg viewBox="0 0 80 50">'+w(5,32)+'<line x1="32" y1="9" x2="32" y2="41"/><line x1="42" y1="17" x2="42" y2="33" style="stroke-width:5"/>'+w(42,75)+'</svg>'],
+ ['Resistencia','<svg viewBox="0 0 80 50"><polyline points="5,25 17,25 22,11 31,39 40,11 49,39 58,11 63,25 75,25"/></svg>'],
+ ['Interruptor','<svg viewBox="0 0 80 50"><line x1="5" y1="32" x2="24" y2="32"/><circle cx="26" cy="32" r="2.5"/><line x1="27" y1="30" x2="56" y2="12"/><circle cx="58" cy="32" r="2.5"/><line x1="60" y1="32" x2="75" y2="32"/></svg>'],
+ ['LED','<svg viewBox="0 0 80 50">'+w(5,25)+'<polygon points="25,11 25,39 50,25"/><line x1="50" y1="10" x2="50" y2="40"/>'+w(50,75)+'<line x1="40" y1="9" x2="52" y2="2"/><polyline points="47,2 52,2 51,7"/><line x1="49" y1="14" x2="61" y2="7"/><polyline points="56,7 61,7 60,12"/></svg>'],
+ ['Bombilla','<svg viewBox="0 0 80 50">'+w(5,27)+'<circle cx="40" cy="25" r="13"/><line x1="31" y1="16" x2="49" y2="34"/><line x1="49" y1="16" x2="31" y2="34"/>'+w(53,75)+'</svg>'],
+ ['Sensor de luz (LDR)','<svg viewBox="0 0 80 50">'+w(5,24)+'<rect x="24" y="18" width="32" height="14"/>'+w(56,75)+'<line x1="14" y1="3" x2="26" y2="14"/><polyline points="14,10 26,14 22,3" /><line x1="26" y1="2" x2="38" y2="13"/><polyline points="26,9 38,13 34,2"/></svg>'],
+ ['Panel solar','<svg viewBox="0 0 80 50"><line x1="5" y1="17" x2="20" y2="17"/><rect x="20" y="8" width="40" height="34"/><line x1="40" y1="8" x2="40" y2="42"/><line x1="20" y1="25" x2="60" y2="25"/><line x1="60" y1="33" x2="75" y2="33"/></svg>'],
+ ['Motor','<svg viewBox="0 0 80 50">'+w(5,25)+'<circle cx="40" cy="25" r="15"/><text x="40" y="31" text-anchor="middle" style="font:700 16px sans-serif;fill:#1f2a44;stroke:none">M</text>'+w(55,75)+'</svg>']
+];
+var cards=[],open=[],lock=false,moves=0,pairs=0,grid=document.getElementById('grid');
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function start(){
+  cards=[];SYM.forEach(function(s,i){cards.push({k:i,t:'s',h:s[1],label:'símbolo de '+s[0].toLowerCase()});cards.push({k:i,t:'n',h:s[0],label:s[0]})});
+  shuffle(cards);open=[];lock=false;moves=0;pairs=0;
+  document.getElementById('final').hidden=true;grid.hidden=false;draw();
+}
+function draw(){
+  grid.innerHTML='';
+  cards.forEach(function(c,i){
+    var b=document.createElement('button');b.type='button';b.className='c';
+    if(c.done){b.className+=' done';b.innerHTML=c.h;b.disabled=true;b.setAttribute('aria-label',c.label+' (pareja encontrada)')}
+    else if(c.up){b.innerHTML=c.h;b.setAttribute('aria-label',c.label)}
+    else{b.className+=' back';b.textContent='?';b.setAttribute('aria-label','Carta '+(i+1)+', boca abajo')}
+    b.onclick=function(){flip(i)};grid.appendChild(b);
+  });
+  document.getElementById('mv').textContent=moves;document.getElementById('pr').textContent=pairs+' de '+SYM.length;
+}
+function flip(i){
+  if(lock||cards[i].up||cards[i].done)return;
+  cards[i].up=true;open.push(i);draw();
+  if(open.length===2){
+    moves++;var a=cards[open[0]],b=cards[open[1]];lock=true;
+    var ok=a.k===b.k&&a.t!==b.t;
+    setTimeout(function(){
+      if(ok){a.done=b.done=true;pairs++;say('¡Pareja! '+SYM[a.k][0]+'.','ok')}
+      else{say('No son pareja. Mira bien y prueba otra vez.','bad')}
+      a.up=b.up=false;open=[];lock=false;draw();
+      if(pairs===SYM.length)finish();
+    },ok?450:900);
+  }
+}
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function finish(){
+  grid.hidden=true;var f=document.getElementById('final');f.hidden=false;
+  var best=SYM.length,txt=moves<=best+4?'¡Muy buena memoria!':moves<=best*2?'Bien hecho. Puedes mejorar con otra partida.':'Lo lograste. Intenta de nuevo con menos intentos.';
+  document.getElementById('res').innerHTML='<big>'+moves+' intentos</big>'+txt;
+}
+document.getElementById('again').onclick=start;start();
+</script></body></html>

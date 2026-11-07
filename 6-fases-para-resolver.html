@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ordena las fases para resolver el problema</title><style>
+:root{--bg:#f4f7fb;--ink:#1f2a44;--mut:#55627d;--acc:#2f6fb5;--card:#fff;--line:#cfd9e8;--ok:#1f6e43;--okbg:#e3f4ea;--bad:#a8301c;--badbg:#fbe9e5;--warn:#fff4cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 4px}
+.tag{color:var(--mut);font-size:.9rem;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--acc)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid #e0a800;outline-offset:2px}
+input[type=text]{font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:220px}
+.msg{min-height:1.7em;margin:8px 0;font-weight:600}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.bar{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.final{text-align:center}
+.final big{display:block;font-size:2rem;font-weight:700;margin:6px 0}
+
+.it{display:flex;gap:8px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:10px;padding:8px;margin-top:8px}
+.it .t{flex:1}
+.it button{min-width:44px;padding:4px 8px}
+.it.good{background:var(--okbg);border-color:var(--ok)}.it.wrong{background:var(--badbg);border-color:var(--bad)}
+.ph{font-size:.8rem;color:var(--mut);display:block}
+</style></head><body><main><h1>Ordena las fases para resolver el problema</h1><p class="tag">Todas las unidades · Comprendo, planifico, ejecuto y verifico</p><div class="card"><p style="margin:0">Al resolver un problema seguimos cuatro fases: <b>comprendo, planifico, ejecuto y verifico</b>. Ordena las acciones de cada situación en el orden correcto.</p></div>
+<div id="play"><div class="bar"><span>Situación <span id="n"></span></span><span>Aciertos: <span id="sc">0</span></span></div>
+<div class="card"><h2 id="ttl" style="font-size:1.1rem;margin:0 0 4px"></h2><p id="dsc" style="margin:0 0 6px"></p><div id="list"></div></div>
+<p id="msg" class="msg" role="status" aria-live="polite"></p><div class="row"><button id="chk" type="button">Comprobar</button><button id="next" type="button" hidden>Siguiente</button></div></div>
+<div id="final" class="card final" hidden><div id="res"></div><p>Si tu profesor lo pide, toma una captura de esta pantalla como evidencia.</p></div>
+<div class="row"><button id="again" class="sec" type="button">Jugar de nuevo</button></div></main><script>
+var P=['Comprendo','Planifico','Ejecuto','Verifico'];
+var C=[{t:'La linterna que no enciende',d:'Tomás armó una linterna con pila, LED, resistencia e interruptor, pero el LED no enciende.',a:['Identificar qué debe lograr: que el LED encienda al cerrar el interruptor.','Decidir revisar las conexiones, el sentido del LED, la resistencia y el interruptor, uno por uno.','Invertir el LED y probar el circuito.','Abrir y cerrar el interruptor varias veces para confirmar que el LED enciende y apaga.']},
+{t:'La lámpara con panel solar',d:'Camila quiere encender un LED de 2 V y 10 mA con un panel solar de 6 V.',a:['Notar que el LED necesita 2 V y 10 mA, y que el panel entrega 6 V.','Calcular la resistencia necesaria: (6 − 2) ÷ 0,01.','Conectar en serie con el LED una resistencia de 400 Ω.','Medir la corriente en el simulador y confirmar que no pasa de 10 mA.']},
+{t:'La lámpara con sensor de luz',d:'Andrés quiere que una lámpara encienda sola cuando haya poca luz.',a:['Leer los valores del sensor en cada situación: 900, 600, 300 y 50.','Elegir un valor límite entre 300 y 600.','Escribir el if con ese valor y subir el programa a la placa.','Tapar y destapar el sensor y mirar si el LED responde.']}];
+var r=0,ord=[],score=0,checked=false;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function say(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c}
+function load(){checked=false;var o=[0,1,2,3];do{shuffle(o)}while(o.join()==='0,1,2,3');ord=o;
+  var c=C[r];document.getElementById('n').textContent=(r+1)+' de '+C.length;document.getElementById('sc').textContent=score;
+  document.getElementById('ttl').textContent=c.t;document.getElementById('dsc').textContent=c.d;
+  document.getElementById('chk').hidden=false;document.getElementById('chk').disabled=false;document.getElementById('next').hidden=true;say('Ordena las acciones con las flechas y toca «Comprobar».','');draw()}
+function draw(){
+  var l=document.getElementById('list');l.innerHTML='';
+  ord.forEach(function(k,pos){
+    var d=document.createElement('div');d.className='it';
+    if(checked){d.className+=(k===pos?' good':' wrong')}
+    d.innerHTML='<span class="t">'+C[r].a[k]+(checked?'<span class="ph">'+(k===pos?'✔ ':'✘ ')+'Esta acción es la fase «'+P[k]+'»</span>':'')+'</span>';
+    if(!checked){
+      var u=document.createElement('button');u.type='button';u.className='sec';u.textContent='↑';u.setAttribute('aria-label','Subir');u.disabled=pos===0;u.onclick=function(){mv(pos,-1)};
+      var dn=document.createElement('button');dn.type='button';dn.className='sec';dn.textContent='↓';dn.setAttribute('aria-label','Bajar');dn.disabled=pos===3;dn.onclick=function(){mv(pos,1)};
+      d.appendChild(u);d.appendChild(dn)}
+    l.appendChild(d)})}
+function mv(p,d){var t=ord[p];ord[p]=ord[p+d];ord[p+d]=t;draw()}
+document.getElementById('chk').onclick=function(){
+  checked=true;var ok=ord.every(function(k,p){return k===p});
+  if(ok){score++;say('¡Perfecto! Primero comprendes, luego planificas, ejecutas y por último verificas.','ok')}else{say('Casi. Fíjate en las acciones marcadas: cada una pertenece a una fase distinta.','bad')}
+  document.getElementById('sc').textContent=score;document.getElementById('chk').hidden=true;var n=document.getElementById('next');n.hidden=false;n.textContent=r===C.length-1?'Ver resultado':'Siguiente';draw();n.focus()};
+document.getElementById('next').onclick=function(){
+  if(r<C.length-1){r++;load()}
+  else{document.getElementById('play').hidden=true;var f=document.getElementById('final');f.hidden=false;
+    document.getElementById('res').innerHTML='<big>'+score+' de '+C.length+'</big>'+(score===3?'Reconoces muy bien las cuatro fases.':'Repasa el orden: comprendo, planifico, ejecuto y verifico.')+'<p style="margin-bottom:0">Pregunta para pensar: ¿en qué fase de tu lámpara fue más difícil trabajar?</p>'}};
+document.getElementById('again').onclick=function(){r=0;score=0;document.getElementById('final').hidden=true;document.getElementById('play').hidden=false;load()};
+load();
+</script></body></html>
